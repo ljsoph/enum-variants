@@ -5,12 +5,35 @@ use quote::quote;
 pub fn enum_variants(input: TokenStream) -> TokenStream {
     let input: syn::ItemEnum = syn::parse_macro_input!(input);
     let name = &input.ident;
-    let variants = input.variants.into_iter().map(|v| v.ident);
 
+    let variants: Vec<proc_macro2::TokenStream> = input
+        .variants
+        .into_iter()
+        .map(|variant| {
+            let ident = variant.ident;
+
+            match variant.fields {
+                syn::Fields::Unit => {
+                    quote! { #ident }
+                }
+                syn::Fields::Unnamed(unnamed) => {
+                    let fields = unnamed.unnamed.into_iter().map(|field| {
+                        let ty = field.ty;
+                        quote! { <#ty>::default() }
+                    });
+
+                    quote! { #ident(#(#fields),*)}
+                }
+                syn::Fields::Named(_fields_named) => unimplemented!(),
+            }
+        })
+        .collect();
+
+    let count = variants.len();
     let expanded = quote! {
         impl #name {
-            pub fn variants() -> &'static[#name] {
-                &[#(#name::#variants),*]
+            pub fn variants() -> [#name; #count] {
+                [#(#name::#variants),*]
             }
         }
     };
