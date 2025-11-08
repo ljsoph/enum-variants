@@ -2,20 +2,24 @@
 
 Easily create an array of all variants of an Enum, preserving their order.
 
-(only works with unit-like variants)
+Currently only support Unit and Unnamed enum variants.
+
+If using an unnamed variant, all fields must implement `Default` or have an associated function with the same signature.
+
+---
+
+**Example**
 
 ```rust
 #[derive(EnumVariants)]
 enum Color {
     Red,
-    Blue,
     Green,
-    Purple
+    Blue,
 }
 
 fn main() {
-    // Produces &[Red, Blue, Green, Purple]
+    // Produces [Red, Green, Blue]
     let variants = Color::variants();
 }
-
 ```
