@@ -24,7 +24,15 @@ pub fn enum_variants(input: TokenStream) -> TokenStream {
 
                     quote! { #ident(#(#fields),*)}
                 }
-                syn::Fields::Named(_fields_named) => unimplemented!(),
+                syn::Fields::Named(named) => {
+                    let fields = named.named.into_iter().map(|field| {
+                        let ty = &field.ty;
+                        let f = &field.ident;
+                        quote! { #f: <#ty>::default() }
+                    });
+
+                    quote! { #ident { #(#fields),* } }
+                }
             }
         })
         .collect();
